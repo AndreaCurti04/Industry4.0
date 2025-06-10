@@ -18,6 +18,7 @@ public class InfluxDB {
     private WriteApiBlocking writeApiBlocking;
 
     public InfluxDB() throws IOException {
+        //client = InfluxDBClientFactory.create("http://localhost:8086", TOKEN.toCharArray());
         client = InfluxDBClientFactory.create("http://169.254.113.180:8086", TOKEN.toCharArray());
         writeApiBlocking = client.getWriteApiBlocking();
 
@@ -37,14 +38,23 @@ public class InfluxDB {
 
     }
 
-    public void writeBallOnDB(BallColor color, double angle) {
+    public void writeBallOnDB(BallColor color) {
         Point point = Point
-                .measurement("balls-py")
+                .measurement("balls")
                 .addTag("color", color.toString())
                 .addField("count", 1L)
                 .time(Instant.now().toEpochMilli(),WritePrecision.MS);
         writePointOnDB(point);
+        //System.out.println(Instant.now());
+        //sudo date -s '2025-06-05 15:01:00' METTERE 2 ORE INDIETRO
+    }
 
+    public void writeContainerOnDB(State state) {
+        Point point = Point
+                .measurement("container_state")
+                .addField("state", state.toString())   // "full" o "empty"
+                .time(Instant.now().toEpochMilli(),WritePrecision.MS);
+        writePointOnDB(point);
     }
 
 
