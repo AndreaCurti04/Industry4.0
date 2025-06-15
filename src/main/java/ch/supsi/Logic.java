@@ -64,38 +64,36 @@ public class Logic {
         Logger.getLogger("GrovePi").setLevel(Level.OFF);
         Logger.getLogger("RaspberryPi").setLevel(Level.OFF);
 
-        //GroveUltrasonicRanger ranger = new GroveUltrasonicRanger(grovePi, 6);
-        String data;
         try {
             double degrees, distance;
-            lcd.setRGB(0,0,0);
+            lcd.setRGB(0, 0, 0);
             while (true) {
                 if (acquisitionOn) {
                     degrees = rotary.get().getDegrees();
                     distance = ranger.get();
-                    System.out.println("Ranger value: "+distance);
+                    System.out.println("Ranger value: " + distance);
                     System.out.println("Rotatory value: " + degrees);
-                    if((totalRedBlue >= 5 || totalWhiteYellow >= 5) && !emptyTheContainer){
+                    if ((totalRedBlue >= 5 || totalWhiteYellow >= 5) && !emptyTheContainer) {
                         emptyTheContainer = true;
                         influx.writeContainerOnDB(State.FULL);
                         lcd.setText("Svuotare i      container");
-                        lcd.setRGB(255,255,0);
+                        lcd.setRGB(255, 255, 0);
                     }
-                    if(distance >= 23.0 && emptyTheContainer){
+                    if (distance >= 23.0 && emptyTheContainer) {
                         emptyTheContainer = false;
                         totalRedBlue = 0;
                         totalWhiteYellow = 0;
                         lcd.setText("Container       svuotati");
                         influx.writeContainerOnDB(State.EMPTY);
-                        lcd.setRGB(0,0,255);
-                    }else if(distance >= 23.0){
+                        lcd.setRGB(0, 0, 255);
+                    } else if (distance >= 23.0) {
                         insertTheContainer = true;
                         lcd.setText("Inserire i      container");
-                        lcd.setRGB(255,255,0);
-                    }else if(distance < 23.0 && insertTheContainer){
+                        lcd.setRGB(255, 255, 0);
+                    } else if (distance < 23.0 && insertTheContainer) {
                         insertTheContainer = false;
                         lcd.setText("Container       inseriti");
-                        lcd.setRGB(255,255,0);
+                        lcd.setRGB(255, 255, 0);
                     }
 
                     if (degrees > MIN_IDLE_RANGE && degrees < MAX_IDLE_RANGE) {
@@ -107,8 +105,8 @@ public class Logic {
                             totalRedBlue++;
                             flagRedBlue = true;
                             influx.writeBallOnDB(BallColor.RED_BLUE);
-                            if(!emptyTheContainer){
-                                lcd.setRGB(255,0,0);
+                            if (!emptyTheContainer) {
+                                lcd.setRGB(255, 0, 0);
                                 lcd.setText("Biscotto        bruciato (" + totalRedBlue + ")");
                             }
                             System.out.println("Biscotto bruciato (" + totalRedBlue + ")");
@@ -118,8 +116,8 @@ public class Logic {
                             totalWhiteYellow++;
                             flagWhiteYellow = true;
                             influx.writeBallOnDB(BallColor.WHITE_YELLOW);
-                            if (!emptyTheContainer){
-                                lcd.setRGB(0,255,0);
+                            if (!emptyTheContainer) {
+                                lcd.setRGB(0, 255, 0);
                                 lcd.setText("Biscotto        buono (" + totalWhiteYellow + ")");
                             }
                             System.out.println("Biscotto buono (" + totalWhiteYellow + ")");
@@ -131,64 +129,9 @@ public class Logic {
             }
         } catch (Exception e) {
             System.err.println("Errore: " + e.getMessage());
-        }finally {
+        } finally {
             influx.closeConnection();
         }
 
     }
-    /*
-    *
-    * GroveUltrasonicRanger ranger = new GroveUltrasonicRanger(grovePi, 2);
-        GroveRotarySensor rotary = new GroveRotarySensor(grovePi, 0);
-        GroveRgbLcd lcd = grovePi.getLCD();
-
-        Status status = Status.GATE_CLOSED;
-        int people = 0;
-        double distance, degrees;
-        while (true) {
-            if (acquisitionOn) {
-                distance = ranger.get();
-                degrees = rotary.get().getDegrees();
-                System.out.println("Rotatory value: "+degrees);
-                System.out.println("Distance value: "+distance);
-                switch (status){
-                    case WAITING_ENTRY:
-                        if(distance < 10.0){
-                            lcd.setRGB(0,255,0);
-                            people++;
-                            status = Status.ENTERED;
-                        }
-                        break;
-                    case WAITING_EXIT:
-                        if(distance < 10.0){
-                            lcd.setRGB(255,0,0);
-                            people--;
-                            status = Status.EXITED;
-                        }
-                        break;
-                    case GATE_CLOSED:
-                        System.out.println("SONO DENTRO GATE");
-                        if(degrees >= 250.0){
-                            if(people < MAX_PEOPLE){
-                                status = Status.WAITING_ENTRY;
-                            }else{
-                                System.out.println("Stadio pieno");
-                            }
-                        } else if (degrees <= 50.0) {
-                            if(people > 0){
-                                status = Status.WAITING_EXIT;
-                            }
-                        }
-                        break;
-                    default:
-                        if(degrees >= 140.0 && degrees <= 160.0){
-                            lcd.setRGB(0,0,0);
-                            status = Status.GATE_CLOSED;
-                        }
-                        System.out.println("GRADI: "+degrees);
-                }
-                lcd.setText("Persone: "+people);
-            }
-            Thread.sleep(500);
-        }*/
 }
